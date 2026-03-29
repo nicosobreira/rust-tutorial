@@ -1,0 +1,16 @@
+pub struct Point<T> {
+    x: T,
+    y: T,
+}
+
+impl<T> Point<T> {
+    pub fn new(x: T, y: T) -> Point<T> {
+        Point { x, y }
+    }
+}
+
+impl Point<f64> {
+    pub fn length_from_origin(&self) -> f64 {
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
+}
