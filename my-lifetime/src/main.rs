@@ -1,6 +1,6 @@
 mod trees;
 
-use trees::{Texture, Tree, Trees};
+use trees::Trees;
 
 fn main() {
     let s1 = "Olá, mundo!".to_string();
@@ -8,12 +8,12 @@ fn main() {
 
     println!("Largest: {}", largest(&s1, &s2));
 
-    // let trees = Trees {
-    //     texture: Texture {
-    //         image: "^\n|".to_string(),
-    //     },
-    //     trees: Vec::new(),
-    // };
+    let mut trees = Trees::new("|".to_string());
+
+    trees.add(0, 0, 2);
+    trees.add(1, 2, 1);
+
+    trees.draw();
 }
 
 fn largest<'a>(s1: &'a str, s2: &'a str) -> &'a str {

@@ -1,4 +1,4 @@
-use max_subarray;
+mod max_subarray;
 
 fn main() {
     let array = [-1, 3, 4, -5, 9, -2];

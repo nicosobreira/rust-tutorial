@@ -29,7 +29,7 @@ fn find_max_crossing_subarray(array: &[i32], middle: usize) -> (&[i32], i32) {
     for (i, n) in left.iter().rev().enumerate() {
         let new_sum = sum + n;
 
-        if new_sum > sum {
+        if new_sum >= sum {
             left_index = i;
             left_sum = new_sum;
         }
@@ -45,7 +45,7 @@ fn find_max_crossing_subarray(array: &[i32], middle: usize) -> (&[i32], i32) {
     for (i, n) in right.iter().enumerate() {
         let new_sum = sum + n;
 
-        if new_sum > sum {
+        if new_sum >= sum {
             right_index = i;
             right_sum = new_sum;
         }
@@ -53,14 +53,14 @@ fn find_max_crossing_subarray(array: &[i32], middle: usize) -> (&[i32], i32) {
         sum = new_sum;
     }
 
-    let right_index = right_index + middle;
+    let right_index = right_index + middle + 1;
 
     (&array[left_index..right_index], left_sum + right_sum)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::max_subarray;
+    use crate::max_subarray;
 
     #[test]
     fn test_single_element() {
