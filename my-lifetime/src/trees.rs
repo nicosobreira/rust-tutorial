@@ -1,14 +1,26 @@
+mod point;
+
+use point::Point;
+
 struct Texture {
-    image: String,
+    pub image: String,
 }
 
-struct Tree<'a> {
+pub struct Tree<'a> {
     texture: &'a Texture,
     position: Point<i32>,
     color: i32,
 }
 
-struct Trees<'a> {
+pub struct Trees<'a> {
     texture: Texture,
     trees: Vec<Tree<'a>>,
+}
+
+impl Trees {
+    fn new(image: String) -> Trees {
+        Trees {
+            texture: Texture { image: image },
+        }
+    }
 }

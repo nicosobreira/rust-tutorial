@@ -1,7 +1,4 @@
-mod point;
 mod trees;
-
-use point::Point;
 
 use trees::{Texture, Tree, Trees};
 
@@ -11,12 +8,12 @@ fn main() {
 
     println!("Largest: {}", largest(&s1, &s2));
 
-    let trees = Trees {
-        texture: Texture {
-            image: "^\n|".to_string(),
-        },
-        trees: Vec::new(),
-    };
+    // let trees = Trees {
+    //     texture: Texture {
+    //         image: "^\n|".to_string(),
+    //     },
+    //     trees: Vec::new(),
+    // };
 }
 
 fn largest<'a>(s1: &'a str, s2: &'a str) -> &'a str {
