@@ -32,13 +32,3 @@ fn main() -> io::Result<()> {
 
     Ok(())
 }
-
-// FIX: The function wiil not panic if the "name" is a directory
-fn file_open(name: &str) -> File {
-    File::open(name).unwrap_or_else(|error| match error.kind() {
-        ErrorKind::NotFound => {
-            panic!("The file \"{}\" does not exist", name);
-        }
-        _ => panic!("{error}"),
-    })
-}
