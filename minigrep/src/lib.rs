@@ -1,54 +1,53 @@
 use std::fs::File;
-use std::io;
 use std::io::{BufRead, BufReader, ErrorKind};
 
 pub struct Config {
-    pub pattern: String,
-    pub file_path: String,
+    pattern: String,
+    file_path: String,
 }
+
 struct Match {
     string: String,
     line: usize,
 }
 
-fn run(config: &Config) -> io::Result<()> {
+pub fn run(config: &Config) -> Result<(), &'static str> {
     let file = file_open(&config.file_path);
 
-    let reader = BufReader::new(file);
+    let mut reader = BufReader::new(file);
 
-    let mut _matches: u32 = 0;
-    for (n, line) in reader.lines().enumerate() {
-        let line = line?;
+    let matches = find_matches(&mut reader, &config.pattern);
 
-        if line.contains(&config.pattern) {
-            println!("{n}: {line}");
-            _matches += 1;
-        }
-    }
-
-    if _matches == 0 {
-        eprintln!("No matches found!");
+    match matches {
+        Some(matches) => print_matches(&matches),
+        None => return Err("No matches found!"),
     }
 
     Ok(())
+}
+
+fn print_matches(matches: &[Match]) {
+    for matc in matches {
+        println!("{}: {}", matc.line, matc.string);
+    }
 }
 
 // FIX: The function wiil not panic if the "name" is a directory
 // FIX: It also need to failed if the user doesn't have the permission to acess the file
 fn file_open(name: &str) -> File {
     File::open(name).unwrap_or_else(|error| match error.kind() {
-        ErrorKind::NotFound => {
-            panic!("The file \"{}\" does not exist", name);
-        }
+        ErrorKind::NotFound => panic!("The file \"{}\" does not exist!", name),
+        ErrorKind::PermissionDenied => panic!("Read permission denied on file \"{name}\"!"),
+        ErrorKind::IsADirectory => panic!("This \"{name}\" is a directory!"),
         _ => panic!("{error}"),
     })
 }
 
-fn find_pattern(reader: &mut BufReader<File>, pattern: &str) -> Option<Vec<Match>> {
+fn find_matches(reader: &mut BufReader<File>, pattern: &str) -> Option<Vec<Match>> {
     let mut matches = Vec::new();
 
     for (n, line) in reader.lines().enumerate() {
-        let line = line.expect("a");
+        let line = line.expect("Failed to read line");
 
         if line.contains(pattern) {
             let matc = Match::new(&line, n);
@@ -64,15 +63,15 @@ fn find_pattern(reader: &mut BufReader<File>, pattern: &str) -> Option<Vec<Match
 }
 
 impl Config {
-    fn parse(args: &[String]) -> Self {
+    pub fn build(args: &[String]) -> Result<Self, &'static str> {
         if args.len() != 3 {
-            panic!("This program only supports two arguments!");
+            return Err("The number of arguments must be exactly three");
         }
 
         let pattern = args[1].clone();
         let file_path = args[2].clone();
 
-        Self { pattern, file_path }
+        Ok(Self { pattern, file_path })
     }
 }
 
