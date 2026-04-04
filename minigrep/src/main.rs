@@ -7,7 +7,7 @@ use minigrep::run;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let config = Config::build(&args).unwrap_or_else(|error| {
-        eprintln!("Error while parsing arguments: {error}");
+        eprintln!("Error: {error}");
         process::exit(1);
     });
 
