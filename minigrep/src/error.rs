@@ -2,23 +2,29 @@ use std::fmt;
 use std::io;
 
 #[derive(Debug)]
-pub enum CliError {
+pub enum CustomError {
     Io(io::Error),
-    InvalidArgs(String),
-    PatternNotFound,
+    MatchNotFound,
+    IsDirectory(String),
+    InvalidNumberOfArgs,
 }
-impl fmt::Display for CliError {
+impl fmt::Display for CustomError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CliError::Io(err) => write!(f, "IO error: {}", err),
-            CliError::InvalidArgs(msg) => write!(f, "Invalid arguments: {}", msg),
-            CliError::PatternNotFound => write!(f, "Pattern not found"),
+            CustomError::Io(err) => write!(f, "IO error, {}", err),
+            CustomError::MatchNotFound => write!(f, "Match not found"),
+            CustomError::IsDirectory(str) => write!(f, "The argument \"{str}\" is a directory"),
+            CustomError::InvalidNumberOfArgs => {
+                write!(f, "The number of arguments must be exactly three")
+            }
         }
     }
 }
-impl std::error::Error for CliError {}
-impl From<io::Error> for CliError {
+
+impl std::error::Error for CustomError {}
+
+impl From<io::Error> for CustomError {
     fn from(err: io::Error) -> Self {
-        CliError::Io(err)
+        CustomError::Io(err)
     }
 }

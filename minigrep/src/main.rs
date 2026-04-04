@@ -12,7 +12,7 @@ fn main() {
     });
 
     if let Err(error) = run(&config) {
-        eprintln!("Error: {error}");
+        eprintln!("Error: {error}!");
         process::exit(2);
     };
 }
