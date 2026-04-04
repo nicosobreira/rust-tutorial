@@ -1,40 +1,57 @@
+use colored::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 
 mod error;
-
 use error::CustomError;
 
 pub struct Config {
     pattern: String,
-    file_path: String,
+    files_paths: Vec<PathBuf>,
 }
 
 struct Match<'a> {
     string: String,
+    file_path: &'a PathBuf,
     line: usize,
-    file_path: &'a str,
 }
 
 pub fn run(config: &Config) -> Result<(), CustomError> {
-    let file = file_open(&config.file_path)?;
+    for file_name in &config.files_paths {
+        let file = match file_open(file_name) {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!("Failed to open {}: {e}", file_name.to_string_lossy());
+                continue;
+            }
+        };
 
-    let reader = BufReader::new(file);
+        let reader = BufReader::new(file);
 
-    let matches = find_matches(reader, config)?;
-
-    print_matches(&matches);
+        match find_matches(reader, &config.pattern, file_name) {
+            Ok(matches) => print_matches(&matches),
+            Err(e) => eprintln!("Error: {e}"),
+        }
+    }
 
     Ok(())
 }
 
 fn print_matches(matches: &[Match]) {
+    let separator = ":".cyan();
+
     for mat in matches {
-        println!("{}:{}: {}", mat.file_path, mat.line, mat.string);
+        println!(
+            "{}{separator}{}{separator}{}",
+            mat.file_path.to_string_lossy().purple(),
+            mat.line.to_string().green(),
+            mat.string
+        );
     }
 }
 
-fn file_open(name: &str) -> Result<File, CustomError> {
+fn file_open(name: &PathBuf) -> Result<File, CustomError> {
     let file = File::open(name).map_err(CustomError::Io)?;
 
     Ok(file)
@@ -42,27 +59,28 @@ fn file_open(name: &str) -> Result<File, CustomError> {
 
 fn find_matches<'a, R: BufRead>(
     reader: R,
-    config: &'a Config,
+    pattern: &str,
+    file_path: &'a PathBuf,
 ) -> Result<Vec<Match<'a>>, CustomError> {
     let mut matches = Vec::new();
 
     for (line, string) in reader.lines().enumerate() {
         let string = string.map_err(CustomError::Io)?;
 
-        if string.contains(&config.pattern) {
+        if string.contains(pattern) {
             matches.push(Match {
-                string: string,
-                file_path: &config.file_path,
-                line: line,
+                string,
+                file_path,
+                line: line + 1,
             });
         }
     }
 
     if matches.is_empty() {
         return Err(CustomError::MatchNotFound);
-    } else {
-        return Ok(matches);
     }
+
+    Ok(matches)
 }
 
 impl Config {
@@ -72,8 +90,11 @@ impl Config {
         }
 
         let pattern = args[1].clone();
-        let file_path = args[2].clone();
+        let files_paths = args[2..].iter().map(PathBuf::from).collect();
 
-        Ok(Self { pattern, file_path })
+        Ok(Self {
+            pattern,
+            files_paths,
+        })
     }
 }
