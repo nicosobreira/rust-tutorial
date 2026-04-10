@@ -4,79 +4,55 @@ use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
 mod error;
-use error::CustomError;
+pub use error::CustomError;
 
+#[derive(Debug)]
 pub struct Config {
-    pattern: String,
-    files_paths: Vec<PathBuf>,
-}
-
-struct Match<'a> {
-    string: String,
-    file_path: &'a PathBuf,
-    line: usize,
+    pub pattern: String,
+    pub files_paths: Vec<PathBuf>,
 }
 
 pub fn run(config: &Config) -> Result<(), CustomError> {
-    for file_name in &config.files_paths {
-        let file = match file_open(file_name) {
-            Ok(f) => f,
-            Err(e) => {
-                eprintln!("Failed to open {}: {e}", file_name.to_string_lossy());
-                continue;
-            }
-        };
-
-        let reader = BufReader::new(file);
-
-        match find_matches(reader, &config.pattern, file_name) {
-            Ok(matches) => print_matches(&matches),
-            Err(e) => eprintln!("Error: {e}"),
+    for file_path in &config.files_paths {
+        if let Err(e) = process_file(file_path, &config.pattern) {
+            eprintln!("Failed to process {}: {e}", file_path.to_string_lossy());
         }
     }
 
     Ok(())
 }
 
-fn print_matches(matches: &[Match]) {
-    let separator = ":".cyan();
+fn process_file(file_path: &PathBuf, pattern: &str) -> Result<(), CustomError> {
+    let file = File::open(file_path).map_err(CustomError::Io)?;
 
-    for mat in matches {
-        println!(
-            "{}{separator}{}{separator}{}",
-            mat.file_path.to_string_lossy().purple(),
-            mat.line.to_string().green(),
-            mat.string
-        );
-    }
+    let reader = BufReader::new(file);
+
+    find_and_print_matches(reader, pattern, file_path)?;
+
+    Ok(())
 }
 
-fn file_open(name: &PathBuf) -> Result<File, CustomError> {
-    let file = File::open(name).map_err(CustomError::Io)?;
-
-    Ok(file)
-}
-
-fn find_matches<'a, R: BufRead>(
+fn find_and_print_matches<'a, R: BufRead>(
     reader: R,
     pattern: &str,
     file_path: &'a PathBuf,
-) -> Result<Vec<Match<'a>>, CustomError> {
-    let mut matches = Vec::new();
+) -> Result<(), CustomError> {
+    let separator = ":".cyan();
 
-    for (line, string) in reader.lines().enumerate() {
-        let string = string.map_err(CustomError::Io)?;
+    for (line_number, line) in reader.lines().enumerate() {
+        let line = line.map_err(CustomError::Io)?;
 
-        if string.contains(pattern) {
-            matches.push(Match {
-                string,
-                file_path,
-                line: line + 1,
-            });
+        if line.contains(pattern) {
+            println!(
+                "{}{separator}{}{separator}{}",
+                file_path.to_string_lossy().purple(),
+                line_number.to_string().green(),
+                line
+            );
         }
     }
 
-    Ok(matches)
+    Ok(())
 }
 
 impl Config {
@@ -88,7 +64,11 @@ impl Config {
             None => return Err(CustomError::InvalidPattern),
         };
 
-        let files_paths = args.map(PathBuf::from).collect();
+        let files_paths: Vec<PathBuf> = args.map(PathBuf::from).collect();
+
+        if files_paths.is_empty() {
+            return Err(CustomError::InvalidFiles);
+        }
 
         Ok(Self {
             pattern,

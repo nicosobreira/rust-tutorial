@@ -7,6 +7,7 @@ pub enum CustomError {
     MatchNotFound,
     InvalidNumberOfArgs,
     InvalidPattern,
+    InvalidFiles,
 }
 
 impl fmt::Display for CustomError {
@@ -17,7 +18,8 @@ impl fmt::Display for CustomError {
             CustomError::InvalidNumberOfArgs => {
                 write!(f, "Invalid number of arguments")
             }
-            CustomError::InvalidPattern => write!(f, "No pattern found"),
+            CustomError::InvalidPattern => write!(f, "No pattern passed"),
+            CustomError::InvalidFiles => write!(f, "No files passed"),
         }
     }
 }
