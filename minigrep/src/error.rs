@@ -6,6 +6,7 @@ pub enum CustomError {
     Io(io::Error),
     MatchNotFound,
     InvalidNumberOfArgs,
+    InvalidPattern,
 }
 
 impl fmt::Display for CustomError {
@@ -16,6 +17,7 @@ impl fmt::Display for CustomError {
             CustomError::InvalidNumberOfArgs => {
                 write!(f, "Invalid number of arguments")
             }
+            CustomError::InvalidPattern => write!(f, "No pattern found"),
         }
     }
 }

@@ -1,17 +1,32 @@
+mod borrow;
+mod iter;
+mod shirts;
+mod sort;
+
 fn main() {
-    let list = vec![1, 3, 2];
+    shirts::example();
 
-    let only_borrows = || println!("From closure: {list:?}");
+    println!();
 
-    println!("Before calling closure: {list:?}");
-    only_borrows();
-    println!("After calling closure: {list:?}");
+    borrow::example();
+
+    println!();
 
     let mut list = vec![1, 2, 3];
-    println!("Before defining closure: {list:?}");
+    println!("Before thread spawn: {list:?}");
 
-    let mut borrows_mutably = || list.push(7);
+    std::thread::spawn(move || {
+        list.push(5);
+        println!("Inside thread: {list:?}");
+    })
+    .join()
+    .unwrap();
 
-    borrows_mutably();
-    println!("After calling closure: {list:?}");
+    println!();
+
+    sort::example();
+
+    println!();
+
+    iter::example();
 }

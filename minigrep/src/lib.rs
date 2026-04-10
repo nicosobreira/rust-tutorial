@@ -80,13 +80,15 @@ fn find_matches<'a, R: BufRead>(
 }
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Self, CustomError> {
-        if args.len() < 3 {
-            return Err(CustomError::InvalidNumberOfArgs);
-        }
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Self, CustomError> {
+        args.next();
 
-        let pattern = args[1].clone();
-        let files_paths = args[2..].iter().map(PathBuf::from).collect();
+        let pattern = match args.next() {
+            Some(p) => p,
+            None => return Err(CustomError::InvalidPattern),
+        };
+
+        let files_paths = args.map(PathBuf::from).collect();
 
         Ok(Self {
             pattern,
