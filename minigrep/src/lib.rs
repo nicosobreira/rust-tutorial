@@ -76,10 +76,6 @@ fn find_matches<'a, R: BufRead>(
         }
     }
 
-    if matches.is_empty() {
-        return Err(CustomError::MatchNotFound);
-    }
-
     Ok(matches)
 }
 
